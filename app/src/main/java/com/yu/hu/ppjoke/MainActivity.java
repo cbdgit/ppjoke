@@ -3,6 +3,7 @@ package com.yu.hu.ppjoke;
 import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.yu.hu.ppjoke.utils.NavGraphBuilder;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
@@ -26,7 +27,8 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
-        navController.handleDeepLink(getIntent());
+        //动态构建页面导航
+        NavGraphBuilder.build(navController);
     }
 
 }
