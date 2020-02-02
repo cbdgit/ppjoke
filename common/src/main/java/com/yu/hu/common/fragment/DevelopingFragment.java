@@ -26,7 +26,7 @@ public abstract class DevelopingFragment extends BaseFragment<FragmentDevelopBin
     }
 
     protected String getText() {
-        return "developing";
+        return getClass().getSimpleName();
     }
 
     @SuppressWarnings("WeakerAccess")

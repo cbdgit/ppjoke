@@ -17,6 +17,7 @@ public class NavGraphBuilder {
 
     /**
      * 构建主页面导航
+     * 效果同布局文件中设置navGraph属性
      *
      * @param controller controller
      */

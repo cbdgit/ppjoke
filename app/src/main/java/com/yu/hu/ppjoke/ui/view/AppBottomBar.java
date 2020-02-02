@@ -1,5 +1,6 @@
 package com.yu.hu.ppjoke.ui.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
@@ -35,6 +36,7 @@ public class AppBottomBar extends BottomNavigationView {
         this(context, attrs, 0);
     }
 
+    @SuppressLint("RestrictedApi")
     public AppBottomBar(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
 
@@ -87,7 +89,7 @@ public class AppBottomBar extends BottomNavigationView {
             int iconSize = ConvertUtil.dp2px(getContext(), tab.size);
             //BottomNavigationView的第一个子view
             BottomNavigationMenuView menuView = (BottomNavigationMenuView) getChildAt(0);
-            //获取到每一个
+            //获取到每一个item
             BottomNavigationItemView itemView = (BottomNavigationItemView) menuView.getChildAt(index);
             itemView.setIconSize(iconSize);
 

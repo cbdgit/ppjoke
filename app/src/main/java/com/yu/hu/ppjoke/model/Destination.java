@@ -18,7 +18,7 @@ public class Destination {
     private boolean needLogin;
     private String pageUrl;
     private String className;
-    private int id;
+    private int id;  //Math.abs(className.hashCode())
 
     public boolean isFragment() {
         return isFragment;

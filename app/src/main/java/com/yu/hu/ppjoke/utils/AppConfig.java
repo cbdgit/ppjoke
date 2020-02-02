@@ -15,6 +15,9 @@ public class AppConfig {
 
     private static BottomBar sBottomBar;
 
+    /**
+     * 获取destnation配置项
+     */
     public static HashMap<String, Destination> getDestConfig() {
         if (sDestConfig == null) {
             String content = ResourceUtil.readFromAssets("destnation.json");
@@ -24,6 +27,9 @@ public class AppConfig {
         return sDestConfig;
     }
 
+    /**
+     * 获取底部导航配置项
+     */
     public static BottomBar getBottomBar(){
         if (sBottomBar == null) {
             String content = ResourceUtil.readFromAssets("main_tabs_config.json");
