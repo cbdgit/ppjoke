@@ -9,10 +9,9 @@ import com.yu.hu.ppjoke.utils.NavGraphBuilder;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.navigation.ui.AppBarConfiguration;
-import androidx.navigation.ui.NavigationUI;
+import androidx.navigation.fragment.NavHostFragment;
 
 public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
 
@@ -28,12 +27,16 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 //        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
 //                R.id.navigation_home, R.id.navigation_dashboard, R.id.navigation_notifications)
 //                .build();
-        navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        //navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+        //noinspection ConstantConditions
+        navController = NavHostFragment.findNavController(fragment);
         //NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         //NavigationUI.setupWithNavController(navView, navController);
 
         //动态构建页面导航
-        NavGraphBuilder.build(navController);
+        //NavGraphBuilder.build(navController, this, R.id.nav_host_fragment);
+        NavGraphBuilder.build(navController, this, fragment.getId());
         //底部导航点击事件
         navView.setOnNavigationItemSelectedListener(this);
     }
