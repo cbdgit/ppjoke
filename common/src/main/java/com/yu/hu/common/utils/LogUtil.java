@@ -6,6 +6,8 @@ import android.util.Log;
  * create by hy on 2019/11/18 23:22
  * <p>
  * logUtil
+ *
+ * @see #printStackTrance(Throwable)  打印捕获到的异常信息
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class LogUtil {
@@ -86,5 +88,14 @@ public class LogUtil {
 
     public static void warn(Throwable throwable) {
         Log.w(TAG, throwable);
+    }
+
+    /**
+     * 用于异常捕获并打印调用栈信息
+     *
+     * @param throwable throwable
+     */
+    public static void printStackTrance(Throwable throwable) {
+        Log.i(TAG, "caught Exception: ", throwable);
     }
 }

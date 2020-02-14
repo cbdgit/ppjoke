@@ -4,7 +4,12 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.MenuItem;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.gson.JsonObject;
+import com.yu.hu.libnetwork2.ApiResponse;
+import com.yu.hu.libnetwork2.GetRequest;
+import com.yu.hu.libnetwork2.JsonCallback;
 import com.yu.hu.ppjoke.utils.NavGraphBuilder;
 
 import androidx.annotation.NonNull;
@@ -39,6 +44,17 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         NavGraphBuilder.build(navController, this, fragment.getId());
         //底部导航点击事件
         navView.setOnNavigationItemSelectedListener(this);
+
+
+        GetRequest<JSONObject> request = new GetRequest<>("www.imooc.com");
+        request.execute();
+
+        request.execute(new JsonCallback<JSONObject>() {
+            @Override
+            public void onSuccess(ApiResponse<JSONObject> response) {
+                super.onSuccess(response);
+            }
+        });
     }
 
     @Override
