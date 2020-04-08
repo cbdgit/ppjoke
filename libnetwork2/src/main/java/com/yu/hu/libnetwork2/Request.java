@@ -3,6 +3,7 @@ package com.yu.hu.libnetwork2;
 import android.text.TextUtils;
 
 import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
 import androidx.arch.core.executor.ArchTaskExecutor;
 
 import com.yu.hu.common.utils.LogUtil;
@@ -255,5 +256,11 @@ public abstract class Request<T, R extends Request> implements Cloneable {
         for (Map.Entry<String, String> entry : headers.entrySet()) {
             builder.addHeader(entry.getKey(), entry.getValue());
         }
+    }
+
+    @NonNull
+    @Override
+    public Request clone() throws CloneNotSupportedException {
+        return (Request<T, R>) super.clone();
     }
 }

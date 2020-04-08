@@ -13,4 +13,8 @@ public class StringConvert {
 
         return count / 10_000 + "万";
     }
+
+    public static String convertFeedUgc(int count) {
+        return StringFeedUgc(count);
+    }
 }

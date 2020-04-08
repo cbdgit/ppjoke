@@ -4,5 +4,8 @@
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
     <string name="img_content_description">这是一张图片</string>
+    <string name="like">赞</string>
+    <string name="share">分享</string>
     <string name="diss">踩</string>
+    <string name="try_refresh">虽然什么也没有,要不下拉刷新试试</string>
 </resources>
