@@ -15,6 +15,7 @@
         tools:ignore="GoogleAppIndexingWarning">
 
         <!--usesCleartextTraffic  允许明文请求 -->
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
 
         <activity
             android:name=".MainActivity"
@@ -26,6 +27,28 @@
             </intent-filter>
         </activity>
         <activity android:name=".ui.publish.PublishActivity" />
+
+
+        <!-- 注册SDKActivity -->
+        <activity
+            android:name="com.tencent.tauth.AuthActivity"
+            android:launchMode="singleTask"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="tencent101794421" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.tencent.connect.common.AssistActivity"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity android:name=".ui.login.LoginActivity" />
+
     </application>
 
 </manifest>

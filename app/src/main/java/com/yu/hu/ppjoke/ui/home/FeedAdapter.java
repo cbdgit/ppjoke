@@ -7,10 +7,12 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.ViewDataBinding;
+import androidx.lifecycle.LifecycleOwner;
 import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.yu.hu.ppjoke.BR;
 import com.yu.hu.ppjoke.databinding.LayoutFeedTypeImageBinding;
 import com.yu.hu.ppjoke.databinding.LayoutFeedTypeVideoBinding;
 import com.yu.hu.ppjoke.model.Feed;
@@ -68,14 +70,22 @@ public class FeedAdapter extends PagedListAdapter<Feed, FeedAdapter.ViewHolder> 
         }
 
         public void bindData(Feed item) {
+            //这里之所以手动绑定数据的原因是 图片 和视频区域都是需要计算的
+            //而dataBinding的执行默认是延迟一帧的。
+            //当列表上下滑动的时候 ，会明显的看到宽高尺寸不对称的问题
+
+            mBinding.setVariable(com.yu.hu.ppjoke.BR.feed, item);
+            mBinding.setVariable(com.yu.hu.ppjoke.BR.lifeCycleOwner, mContext);
             if (mBinding instanceof LayoutFeedTypeImageBinding) {
                 LayoutFeedTypeImageBinding imageBinding = (LayoutFeedTypeImageBinding) mBinding;
                 imageBinding.setFeed(item);
                 imageBinding.feedImage.bindData(item.width, item.height, 16, item.cover);
+                //imageBinding.setLifecycleOwner((LifecycleOwner) mContext);
             } else {
                 LayoutFeedTypeVideoBinding videoBinding = (LayoutFeedTypeVideoBinding) mBinding;
                 videoBinding.setFeed(item);
                 videoBinding.listPlayerView.bindData(mCategory, item.width, item.height, item.cover, item.url);
+                //videoBinding.setLifecycleOwner((LifecycleOwner) mContext);
             }
         }
     }

@@ -3,9 +3,11 @@ package com.yu.hu.ppjoke.ui.home;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.arch.core.executor.ArchTaskExecutor;
 import androidx.lifecycle.MutableLiveData;
 import androidx.paging.DataSource;
 import androidx.paging.ItemKeyedDataSource;
+import androidx.paging.PagedList;
 
 import com.alibaba.fastjson.TypeReference;
 import com.yu.hu.libnetwork2.ApiResponse;
@@ -14,10 +16,13 @@ import com.yu.hu.libnetwork2.JsonCallback;
 import com.yu.hu.libnetwork2.Request;
 import com.yu.hu.ppjoke.model.Feed;
 import com.yu.hu.ppjoke.ui.AbsViewModel;
+import com.yu.hu.ppjoke.ui.MutablePageKeyedDataSource;
+import com.yu.hu.ppjoke.ui.login.UserManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Hy
@@ -26,31 +31,46 @@ import java.util.List;
 public class HomeViewModel extends AbsViewModel<Feed> {
 
     private volatile boolean witchCache = true;
+    private MutableLiveData<PagedList<Feed>> cacheLiveData = new MutableLiveData<>();
+    private AtomicBoolean loadAfter = new AtomicBoolean(false);
+
+    private String mFeedType;
 
     @Override
     public DataSource createDataSource() {
-
-        return mDataSource;
+        return new FeedDataSource();
     }
 
-    ItemKeyedDataSource<Integer, Feed> mDataSource = new ItemKeyedDataSource<Integer, Feed>() {
+    public void setFeedType(String feedType) {
+
+        mFeedType = feedType;
+    }
+
+    public MutableLiveData<PagedList<Feed>> getCacheLiveData() {
+        return cacheLiveData;
+    }
+
+
+    class FeedDataSource extends ItemKeyedDataSource<Integer, Feed> {
         @Override
         public void loadInitial(@NonNull LoadInitialParams<Integer> params, @NonNull LoadInitialCallback<Feed> callback) {
             //加载初始化数据的
-            loadData(0, callback);
+            Log.e("homeviewmodel", "loadInitial: ");
+            loadData(0, params.requestedLoadSize, callback);
             witchCache = false;
         }
 
         @Override
         public void loadAfter(@NonNull LoadParams<Integer> params, @NonNull LoadCallback<Feed> callback) {
             //向后加载分页数据的
-            loadData(params.key,callback);
+            Log.e("homeviewmodel", "loadAfter: ");
+            loadData(params.key, params.requestedLoadSize, callback);
         }
 
         @Override
         public void loadBefore(@NonNull LoadParams<Integer> params, @NonNull LoadCallback<Feed> callback) {
-            //能够向前加载数据的
             callback.onResult(Collections.emptyList());
+            //能够向前加载数据的
         }
 
         @NonNull
@@ -58,15 +78,18 @@ public class HomeViewModel extends AbsViewModel<Feed> {
         public Integer getKey(@NonNull Feed item) {
             return item.id;
         }
-    };
+    }
 
-    private void loadData(int key, ItemKeyedDataSource.LoadCallback<Feed> callback) {
+    private void loadData(int key, int count, ItemKeyedDataSource.LoadCallback<Feed> callback) {
+        if (key > 0) {
+            loadAfter.set(true);
+        }
         //feeds/queryHotFeedsList
         Request request = ApiService.get("/feeds/queryHotFeedsList")
-                .addParams("feedType",null)
-                .addParams("userId", 0)
+                .addParams("feedType", mFeedType)
+                .addParams("userId", UserManager.get().getUserId())
                 .addParams("feedId", key)
-                .addParams("pageCount", 10)
+                .addParams("pageCount", count)
                 .responseType(new TypeReference<ArrayList<Feed>>() {
                 }.getType());
 
@@ -75,8 +98,18 @@ public class HomeViewModel extends AbsViewModel<Feed> {
             request.execute(new JsonCallback<List<Feed>>() {
                 @Override
                 public void onCacheSuccess(ApiResponse<List<Feed>> response) {
-                    super.onCacheSuccess(response);
-                    Log.e("onCacheSuccess", "onCacheSuccess: "+response.body.size() );
+                    Log.e("loadData", "onCacheSuccess: ");
+                    MutablePageKeyedDataSource dataSource = new MutablePageKeyedDataSource<Integer,Feed>();
+                    dataSource.data.addAll(response.body);
+
+                    PagedList pagedList = dataSource.buildNewPagedList(config);
+                    cacheLiveData.postValue(pagedList);
+
+                    //下面的不可取，否则会报
+                    // java.lang.IllegalStateException: callback.onResult already called, cannot call again.
+                    //if (response.body != null) {
+                    //  callback.onResult(response.body);
+                    // }
                 }
             });
         }
@@ -91,12 +124,27 @@ public class HomeViewModel extends AbsViewModel<Feed> {
 
             if (key > 0) {
                 //通过BoundaryPageData发送数据 告诉UI层 是否应该主动关闭上拉加载分页的动画
-                getBoundaryPageData().postValue(data.size() > 0);
+                ((MutableLiveData) getBoundaryPageData()).postValue(data.size() > 0);
+                loadAfter.set(false);
             }
         } catch (CloneNotSupportedException e) {
             e.printStackTrace();
         }
 
         Log.e("loadData", "loadData: key:" + key);
+
+    }
+
+    public void loadAfter(int id, ItemKeyedDataSource.LoadCallback<Feed> callback) {
+        if (loadAfter.get()) {
+            callback.onResult(Collections.emptyList());
+            return;
+        }
+        ArchTaskExecutor.getIOThreadExecutor().execute(new Runnable() {
+            @Override
+            public void run() {
+                loadData(id, config.pageSize, callback);
+            }
+        });
     }
 }

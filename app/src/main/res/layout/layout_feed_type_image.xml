@@ -8,6 +8,11 @@
             name="feed"
             type="com.yu.hu.ppjoke.model.Feed" />
 
+        <variable
+            name="lifeCycleOwner"
+            type="androidx.lifecycle.LifecycleOwner" />
+
+        <import type="com.yu.hu.ppjoke.model.Feed"/>
     </data>
 
     <LinearLayout
@@ -43,7 +48,8 @@
 
         <include
             layout="@layout/layout_feed_interaction"
-            app:feed="@{feed}" />
+            app:feed="@{feed}"
+            app:lifeCycleOwner="@{lifeCycleOwner}"/>
 
     </LinearLayout>
 </layout>
