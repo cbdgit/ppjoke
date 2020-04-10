@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -60,6 +61,8 @@ public class PPImageView extends AppCompatImageView {
                     int height = resource.getIntrinsicHeight();
                     int width = resource.getIntrinsicWidth();
                     setSize(width, height, marginLeft, maxWidth, maxHeight);
+
+                    setImageDrawable(resource);
                 }
             });
             return;

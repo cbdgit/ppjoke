@@ -1,11 +1,14 @@
 package com.yu.hu.ppjoke.ui.home;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.paging.PagedListAdapter;
@@ -13,9 +16,11 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yu.hu.ppjoke.BR;
+import com.yu.hu.ppjoke.R;
 import com.yu.hu.ppjoke.databinding.LayoutFeedTypeImageBinding;
 import com.yu.hu.ppjoke.databinding.LayoutFeedTypeVideoBinding;
 import com.yu.hu.ppjoke.model.Feed;
+import com.yu.hu.ppjoke.view.ListPlayerView;
 
 /**
  * @author Hy
@@ -44,25 +49,51 @@ public class FeedAdapter extends PagedListAdapter<Feed, FeedAdapter.ViewHolder> 
         mCategory = category;
     }
 
-    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ViewDataBinding binding = null;
-        if (viewType == Feed.TYPE_IMAGE_TEXT) {
-            binding = LayoutFeedTypeImageBinding.inflate(inflater);
-        } else {
-            binding = LayoutFeedTypeVideoBinding.inflate(inflater);
+    public int getItemViewType(int position) {
+        Feed feed = getItem(position);
+        if (feed.itemType == Feed.TYPE_IMAGE_TEXT) {
+            return R.layout.layout_feed_type_image;
+        } else if (feed.itemType == Feed.TYPE_VIDEO) {
+            return R.layout.layout_feed_type_video;
         }
-        return new ViewHolder(binding.getRoot(), binding);
+        return 0;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.bindData(getItem(position));
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        ViewDataBinding binding = DataBindingUtil.inflate(inflater, viewType, parent, false);
+        return new ViewHolder(binding.getRoot(), binding);
+    }
+
+
+    @Override
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        final Feed feed = getItem(position);
+
+        holder.bindData(feed);
+
+//        holder.itemView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                FeedDetailActivity.startFeedDetailActivity(mContext, feed, mCategory);
+//                onStartFeedDetailActivity(feed);
+//                if (mFeedObserver == null) {
+//                    mFeedObserver = new FeedObserver();
+//                    LiveDataBus.get()
+//                            .with(InteractionPresenter.DATA_FROM_INTERACTION)
+//                            .observe((LifecycleOwner) mContext, mFeedObserver);
+//                }
+//                mFeedObserver.setFeed(feed);
+//            }
+//        });
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         private final ViewDataBinding mBinding;
+
+        public ImageView feedImage;
+        public ListPlayerView listPlayerView;
 
         public ViewHolder(@NonNull View itemView, ViewDataBinding binding) {
             super(itemView);
@@ -78,15 +109,25 @@ public class FeedAdapter extends PagedListAdapter<Feed, FeedAdapter.ViewHolder> 
             mBinding.setVariable(com.yu.hu.ppjoke.BR.lifeCycleOwner, mContext);
             if (mBinding instanceof LayoutFeedTypeImageBinding) {
                 LayoutFeedTypeImageBinding imageBinding = (LayoutFeedTypeImageBinding) mBinding;
-                imageBinding.setFeed(item);
+                feedImage = imageBinding.feedImage;
                 imageBinding.feedImage.bindData(item.width, item.height, 16, item.cover);
-                //imageBinding.setLifecycleOwner((LifecycleOwner) mContext);
-            } else {
+                //imageBinding.setFeed(item);
+                //imageBinding.interactionBinding.setLifeCycleOwner((LifecycleOwner) mContext);
+            } else if (mBinding instanceof LayoutFeedTypeVideoBinding) {
                 LayoutFeedTypeVideoBinding videoBinding = (LayoutFeedTypeVideoBinding) mBinding;
-                videoBinding.setFeed(item);
                 videoBinding.listPlayerView.bindData(mCategory, item.width, item.height, item.cover, item.url);
-                //videoBinding.setLifecycleOwner((LifecycleOwner) mContext);
+                listPlayerView = videoBinding.listPlayerView;
+                //videoBinding.setFeed(item);
+                //videoBinding.interactionBinding.setLifeCycleOwner((LifecycleOwner) mContext);
             }
+        }
+
+        public boolean isVideoItem() {
+            return mBinding instanceof LayoutFeedTypeVideoBinding;
+        }
+
+        public ListPlayerView getListPlayerView() {
+            return listPlayerView;
         }
     }
 }
