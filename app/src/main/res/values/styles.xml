@@ -28,6 +28,11 @@
         <item name="android:elevation">0dp</item>
     </style>
 
+    <style name="launcher" parent="AppTheme">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@drawable/splash</item>
+    </style>
+
     <!--  自定义属性以设置圆角  -->
     <declare-styleable name="viewOutLineStrategy">
         <attr name="radius" format="dimension" />

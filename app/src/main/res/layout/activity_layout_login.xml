@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginBottom="@dimen/dp_60"
-        android:src="@mipmap/icon_jetpack"
+        android:src="@drawable/icon_jetpack"
         android:contentDescription="@string/img_content_description"/>
 
 

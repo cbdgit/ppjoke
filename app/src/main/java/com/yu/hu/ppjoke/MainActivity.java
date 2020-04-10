@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import com.alibaba.fastjson.JSONObject;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.gson.JsonObject;
+import com.yu.hu.common.utils.StatusBar;
 import com.yu.hu.libnetwork2.ApiResponse;
 import com.yu.hu.libnetwork2.GetRequest;
 import com.yu.hu.libnetwork2.JsonCallback;
@@ -35,6 +36,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
+        StatusBar.fitSystemBar(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         navView = findViewById(R.id.nav_view);
