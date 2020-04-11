@@ -16,6 +16,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.yu.hu.libnetwork2.ApiResponse;
 import com.yu.hu.libnetwork2.ApiService;
 import com.yu.hu.libnetwork2.JsonCallback;
+import com.yu.hu.ppjoke.extention.LiveDataBus;
 import com.yu.hu.ppjoke.model.Comment;
 import com.yu.hu.ppjoke.model.Feed;
 import com.yu.hu.ppjoke.model.User;
@@ -70,8 +71,8 @@ public class InteractionPresenter {
                         if (response.body != null) {
                             boolean hasLiked = response.body.getBoolean("hasLiked").booleanValue();
                             feed.getUgc().setHasLiked(hasLiked);
-//                            LiveDataBus.get().with(DATA_FROM_INTERACTION)
-//                                    .postValue(feed);
+                            LiveDataBus.get().with(DATA_FROM_INTERACTION)
+                                    .postValue(feed);
                         }
                     }
 
@@ -183,6 +184,76 @@ public class InteractionPresenter {
                         if (response.body != null) {
                             boolean hasLiked = response.body.getBooleanValue("hasLiked");
                             comment.getUgc().setHasLiked(hasLiked);
+                        }
+                    }
+
+                    @Override
+                    public void onError(ApiResponse<JSONObject> response) {
+                        showToast(response.message);
+                    }
+                });
+    }
+
+    //收藏/取消收藏一个帖子
+    public static void toggleFeedFavorite(LifecycleOwner owner, Feed feed) {
+        if (!isLogin(owner, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                toggleFeedFavorite(feed);
+            }
+        })) {
+        } else {
+            toggleFeedFavorite(feed);
+        }
+    }
+
+    private static void toggleFeedFavorite(Feed feed) {
+        ApiService.get("/ugc/toggleFavorite")
+                .addParams("itemId", feed.itemId)
+                .addParams("userId", UserManager.get().getUserId())
+                .execute(new JsonCallback<JSONObject>() {
+                    @Override
+                    public void onSuccess(ApiResponse<JSONObject> response) {
+                        if (response.body != null) {
+                            boolean hasFavorite = response.body.getBooleanValue("hasFavorite");
+                            feed.getUgc().setHasFavorite(hasFavorite);
+                            LiveDataBus.get().with(DATA_FROM_INTERACTION)
+                                    .postValue(feed);
+                        }
+                    }
+
+                    @Override
+                    public void onError(ApiResponse<JSONObject> response) {
+                        showToast(response.message);
+                    }
+                });
+    }
+
+    //关注/取消关注一个用户
+    public static void toggleFollowUser(LifecycleOwner owner, Feed feed) {
+        if (!isLogin(owner, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                toggleFollowUser(feed);
+            }
+        })) {
+        } else {
+            toggleFollowUser(feed);
+        }
+    }
+
+    private static void toggleFollowUser(Feed feed) {
+        ApiService.get("/ugc/toggleUserFollow")
+                .addParams("followUserId", UserManager.get().getUserId())
+                .addParams("userId", feed.author.userId)
+                .execute(new JsonCallback<JSONObject>() {
+                    @Override
+                    public void onSuccess(ApiResponse<JSONObject> response) {
+                        if (response.body != null) {
+                            boolean hasFollow = response.body.getBooleanValue("hasLiked");
+                            feed.getAuthor().setHasFollow(hasFollow);
+                            LiveDataBus.get().with(DATA_FROM_INTERACTION)
+                                    .postValue(feed);
                         }
                     }
 

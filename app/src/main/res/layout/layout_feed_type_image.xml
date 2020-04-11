@@ -12,7 +12,7 @@
             name="lifeCycleOwner"
             type="androidx.lifecycle.LifecycleOwner" />
 
-        <import type="com.yu.hu.ppjoke.model.Feed"/>
+        <import type="com.yu.hu.ppjoke.model.Feed" />
     </data>
 
     <LinearLayout
@@ -27,7 +27,8 @@
 
         <include
             layout="@layout/layout_feed_text"
-            app:feedText="@{feed.feeds_text}" />
+            app:feedText="@{feed.feeds_text}"
+            app:lines="@{3}" />
 
         <!-- 图片区域 -->
         <!-- 这里的图片大小是不固定了，而databinding刷新页面会延迟1帧，
@@ -49,7 +50,7 @@
         <include
             layout="@layout/layout_feed_interaction"
             app:feed="@{feed}"
-            app:lifeCycleOwner="@{lifeCycleOwner}"/>
+            app:lifeCycleOwner="@{lifeCycleOwner}" />
 
     </LinearLayout>
 </layout>

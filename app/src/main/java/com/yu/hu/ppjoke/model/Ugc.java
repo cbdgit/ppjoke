@@ -80,4 +80,14 @@ public class Ugc extends BaseObservable implements Serializable {
         this.hasLiked = hasLiked;
         notifyPropertyChanged(BR._all);
     }
+
+    @Bindable
+    public boolean isHasFavorite() {
+        return hasFavorite;
+    }
+
+    public void setHasFavorite(boolean hasFavorite) {
+        this.hasFavorite = hasFavorite;
+        notifyPropertyChanged(BR._all);
+    }
 }

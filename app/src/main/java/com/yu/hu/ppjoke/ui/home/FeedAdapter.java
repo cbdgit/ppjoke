@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
 import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
@@ -19,7 +20,10 @@ import com.yu.hu.ppjoke.BR;
 import com.yu.hu.ppjoke.R;
 import com.yu.hu.ppjoke.databinding.LayoutFeedTypeImageBinding;
 import com.yu.hu.ppjoke.databinding.LayoutFeedTypeVideoBinding;
+import com.yu.hu.ppjoke.detail.FeedDetailActivity;
+import com.yu.hu.ppjoke.extention.LiveDataBus;
 import com.yu.hu.ppjoke.model.Feed;
+import com.yu.hu.ppjoke.ui.InteractionPresenter;
 import com.yu.hu.ppjoke.view.ListPlayerView;
 
 /**
@@ -73,20 +77,44 @@ public class FeedAdapter extends PagedListAdapter<Feed, FeedAdapter.ViewHolder> 
 
         holder.bindData(feed);
 
-//        holder.itemView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                FeedDetailActivity.startFeedDetailActivity(mContext, feed, mCategory);
-//                onStartFeedDetailActivity(feed);
-//                if (mFeedObserver == null) {
-//                    mFeedObserver = new FeedObserver();
-//                    LiveDataBus.get()
-//                            .with(InteractionPresenter.DATA_FROM_INTERACTION)
-//                            .observe((LifecycleOwner) mContext, mFeedObserver);
-//                }
-//                mFeedObserver.setFeed(feed);
-//            }
-//        });
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FeedDetailActivity.startFeedDetailActivity(mContext, feed, mCategory);
+                onStartFeedDetailActivity(feed);
+                if (mFeedObserver == null) {
+                    mFeedObserver = new FeedObserver();
+                    LiveDataBus.get()
+                            .with(InteractionPresenter.DATA_FROM_INTERACTION)
+                            .observe((LifecycleOwner) mContext, mFeedObserver);
+                }
+                mFeedObserver.setFeed(feed);
+            }
+        });
+    }
+
+    public void onStartFeedDetailActivity(Feed feed) {
+
+    }
+
+    private FeedObserver mFeedObserver;
+
+    private class FeedObserver implements Observer<Feed> {
+
+        private Feed mFeed;
+
+        @Override
+        public void onChanged(Feed newOne) {
+            if (mFeed.id != newOne.id)
+                return;
+            mFeed.author = newOne.author;
+            mFeed.ugc = newOne.ugc;
+            mFeed.notifyChange();
+        }
+
+        public void setFeed(Feed feed) {
+            mFeed = feed;
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

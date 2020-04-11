@@ -17,13 +17,19 @@
             name="fullscreen"
             type="Boolean" />
 
+        <variable
+            name="owner"
+            type="androidx.lifecycle.LifecycleOwner" />
+
+        <import type="com.yu.hu.ppjoke.ui.InteractionPresenter"/>
+
         <import type="com.yu.hu.ppjoke.utils.TimeUtils" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@{fullscreen?@color/color_white:@color/color_000}"
+        android:background="@color/transparent"
         android:orientation="vertical"
         android:paddingLeft="@{leftMargin}"
         android:paddingTop="@dimen/dp_3"
@@ -75,6 +81,7 @@
             android:layout_marginEnd="@dimen/dp_16"
             android:backgroundTint="@{fullscreen?@color/transparent:@color/color_theme}"
             android:gravity="center"
+            android:onClick="@{()->InteractionPresenter.toggleFollowUser(owner,feed)}"
             android:paddingLeft="@dimen/dp_16"
             android:paddingTop="@dimen/dp_5"
             android:paddingRight="@dimen/dp_16"
