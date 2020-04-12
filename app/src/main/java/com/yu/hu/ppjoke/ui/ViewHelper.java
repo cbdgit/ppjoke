@@ -1,11 +1,15 @@
 package com.yu.hu.ppjoke.ui;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.res.TypedArray;
 import android.graphics.Outline;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewOutlineProvider;
+
+import androidx.annotation.RequiresApi;
 
 import com.yu.hu.ppjoke.R;
 
@@ -26,7 +30,7 @@ public class ViewHelper {
 
     public static void setViewOutLine(View view, AttributeSet attributes, int defStyleAttr, int defStyleRes) {
         TypedArray typedArray = view.getContext().obtainStyledAttributes(attributes, R.styleable.viewOutLineStrategy, defStyleAttr, defStyleRes);
-        int radius = typedArray.getDimensionPixelOffset(R.styleable.viewOutLineStrategy_radius, 0);
+        int radius = typedArray.getDimensionPixelOffset(R.styleable.viewOutLineStrategy_clip_radius, 0);
         int radiusSide = typedArray.getIndex(R.styleable.viewOutLineStrategy_radiusSide);
         typedArray.recycle();
 
@@ -74,4 +78,41 @@ public class ViewHelper {
         view.invalidate();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    public static void setViewOutline(View owner, final int radius, final int radiusSide) {
+        owner.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            @TargetApi(21)
+            public void getOutline(View view, Outline outline) {
+                int w = view.getWidth(), h = view.getHeight();
+                if (w == 0 || h == 0) {
+                    return;
+                }
+
+                if (radiusSide != RADIUS_ALL) {
+                    int left = 0, top = 0, right = w, bottom = h;
+                    if (radiusSide == RADIUS_LEFT) {
+                        right += radius;
+                    } else if (radiusSide == RADIUS_TOP) {
+                        bottom += radius;
+                    } else if (radiusSide == RADIUS_RIGHT) {
+                        left -= radius;
+                    } else if (radiusSide == RADIUS_BOTTOM) {
+                        top -= radius;
+                    }
+                    outline.setRoundRect(left, top, right, bottom, radius);
+                    return;
+                }
+
+                int top = 0, bottom = h, left = 0, right = w;
+                if (radius <= 0) {
+                    outline.setRect(left, top, right, bottom);
+                } else {
+                    outline.setRoundRect(left, top, right, bottom, radius);
+                }
+            }
+        });
+        owner.setClipToOutline(radius > 0);
+        owner.invalidate();
+    }
 }

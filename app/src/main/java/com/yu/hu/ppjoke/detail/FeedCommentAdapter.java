@@ -1,5 +1,6 @@
 package com.yu.hu.ppjoke.detail;
 
+import android.app.Activity;
 import android.content.Context;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -7,12 +8,18 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.paging.ItemKeyedDataSource;
+import androidx.paging.PagedList;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yu.hu.ppjoke.databinding.LayoutFeedCommentListItemBinding;
 import com.yu.hu.ppjoke.extention.AbsPagedListAdapter;
 import com.yu.hu.ppjoke.model.Comment;
+import com.yu.hu.ppjoke.publish.PreviewActivity;
+import com.yu.hu.ppjoke.ui.InteractionPresenter;
+import com.yu.hu.ppjoke.ui.MutableItemKeyedDataSource;
 import com.yu.hu.ppjoke.ui.login.UserManager;
 import com.yu.hu.ppjoke.utils.PixUtils;
 
@@ -51,11 +58,57 @@ public class FeedCommentAdapter extends AbsPagedListAdapter<Comment, FeedComment
     protected void onBindViewHolder2(@NonNull ViewHolder holder, int position) {
         Comment item = getItem(position);
         holder.bindData(item);
+        holder.mBinding.commentDelete.setOnClickListener(v ->
+                InteractionPresenter.deleteFeedComment(mContext, item.itemId, item.commentId)
+                        .observe((LifecycleOwner) mContext, success -> {
+                            if (success) {
+                                deleteAndRefreshList(item);
+                            }
+                        }));
+        holder.mBinding.commentCover.setOnClickListener(v -> {
+            boolean isVideo = item.commentType == Comment.COMMENT_TYPE_VIDEO;
+            PreviewActivity.startActivityForResult((Activity) mContext, isVideo ? item.videoUrl : item.imageUrl, isVideo, null);
+        });
+
     }
 
     @Override
     protected int getItemViewType2(int position) {
         return 0;
+    }
+
+    public void deleteAndRefreshList(Comment item) {
+        MutableItemKeyedDataSource<Integer, Comment> dataSource = new MutableItemKeyedDataSource<Integer, Comment>((ItemKeyedDataSource) getCurrentList().getDataSource()) {
+            @NonNull
+            @Override
+            public Integer getKey(@NonNull Comment item) {
+                return item.id;
+            }
+        };
+        PagedList<Comment> currentList = getCurrentList();
+        for (Comment comment : currentList) {
+            if (comment != item) {
+                dataSource.data.add(comment);
+            }
+        }
+        PagedList<Comment> pagedList = dataSource.buildNewPagedList(getCurrentList().getConfig());
+        submitList(pagedList);
+    }
+
+
+    public void addAndRefreshList(Comment comment) {
+        PagedList<Comment> currentList = getCurrentList();
+        MutableItemKeyedDataSource<Integer, Comment> mutableItemKeyedDataSource = new MutableItemKeyedDataSource<Integer, Comment>((ItemKeyedDataSource) currentList.getDataSource()) {
+            @NonNull
+            @Override
+            public Integer getKey(@NonNull Comment item) {
+                return item.id;
+            }
+        };
+        mutableItemKeyedDataSource.data.add(comment);
+        mutableItemKeyedDataSource.data.addAll(currentList);
+        PagedList<Comment> pagedList = mutableItemKeyedDataSource.buildNewPagedList(currentList.getConfig());
+        submitList(pagedList);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

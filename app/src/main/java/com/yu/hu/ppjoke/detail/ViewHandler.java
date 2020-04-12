@@ -1,5 +1,7 @@
 package com.yu.hu.ppjoke.detail;
 
+import android.content.Intent;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.CallSuper;
@@ -30,6 +32,7 @@ public abstract class ViewHandler {
     protected RecyclerView mRecyclerView;
     protected LayoutFeedDetailBottomInateractionBinding mInateractionBinding;
     protected FeedCommentAdapter listAdapter;
+    private CommentDialog commentDialog;
 
     public ViewHandler(FragmentActivity activity) {
 
@@ -61,6 +64,23 @@ public abstract class ViewHandler {
             }
         });
 
+        mInateractionBinding.inputView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showCommentDialog();
+            }
+        });
+    }
+
+    private void showCommentDialog() {
+        if (commentDialog == null) {
+            commentDialog = CommentDialog.newInstance(mFeed.itemId);
+        }
+        commentDialog.setCommentAddListener(comment -> {
+            handleEmpty(true);
+            listAdapter.addAndRefreshList(comment);
+        });
+        commentDialog.show(mActivity.getSupportFragmentManager(), "comment_dialog");
     }
 
     private EmptyView mEmptyView;
@@ -79,6 +99,24 @@ public abstract class ViewHandler {
             }
             listAdapter.addHeaderView(mEmptyView);
         }
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (commentDialog != null && commentDialog.isAdded()) {
+            commentDialog.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    public void onPause() {
+
+    }
+
+    public void onResume() {
+
+    }
+
+    public void onBackPressed() {
+
     }
 
 }

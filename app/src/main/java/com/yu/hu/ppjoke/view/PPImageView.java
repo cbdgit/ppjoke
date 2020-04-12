@@ -124,4 +124,8 @@ public class PPImageView extends AppCompatImageView {
                     }
                 });
     }
+
+    public void setImageUrl(String imageUrl) {
+        setImageUrl(this, imageUrl, false);
+    }
 }

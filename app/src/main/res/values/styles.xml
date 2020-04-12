@@ -37,9 +37,14 @@
         <item name="android:windowFullscreen">true</item>
     </style>
 
+    <style name="capture" parent="AppTheme">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@color/black</item>
+    </style>
+
     <!--  自定义属性以设置圆角  -->
     <declare-styleable name="viewOutLineStrategy">
-        <attr name="radius" format="dimension" />
+        <attr name="clip_radius" format="dimension" />
         <attr name="radiusSide" format="enum">
             <enum name="all" value="0" />
             <enum name="left" value="1" />
@@ -48,4 +53,5 @@
             <enum name="bottom" value="4" />
         </attr>
     </declare-styleable>
+
 </resources>
