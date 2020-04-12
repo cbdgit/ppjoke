@@ -1,4 +1,4 @@
-package com.yu.hu.ppjoke.publish;
+package com.yu.hu.ppjoke.ui.publish;
 
 import android.app.Activity;
 import android.content.Intent;

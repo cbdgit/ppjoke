@@ -1,7 +1,6 @@
-package com.yu.hu.ppjoke.detail;
+package com.yu.hu.ppjoke.ui.detail;
 
 import androidx.annotation.NonNull;
-import androidx.paging.DataSource;
 import androidx.paging.ItemKeyedDataSource;
 
 import com.alibaba.fastjson.TypeReference;

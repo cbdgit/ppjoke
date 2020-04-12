@@ -1,7 +1,6 @@
 package com.yu.hu.ppjoke.ui.home;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,11 +15,10 @@ import androidx.paging.PagedListAdapter;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.yu.hu.ppjoke.BR;
 import com.yu.hu.ppjoke.R;
 import com.yu.hu.ppjoke.databinding.LayoutFeedTypeImageBinding;
 import com.yu.hu.ppjoke.databinding.LayoutFeedTypeVideoBinding;
-import com.yu.hu.ppjoke.detail.FeedDetailActivity;
+import com.yu.hu.ppjoke.ui.detail.FeedDetailActivity;
 import com.yu.hu.ppjoke.extention.LiveDataBus;
 import com.yu.hu.ppjoke.model.Feed;
 import com.yu.hu.ppjoke.ui.InteractionPresenter;

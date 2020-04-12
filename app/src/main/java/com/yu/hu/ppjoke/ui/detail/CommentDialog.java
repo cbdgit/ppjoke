@@ -1,4 +1,4 @@
-package com.yu.hu.ppjoke.detail;
+package com.yu.hu.ppjoke.ui.detail;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,7 +30,7 @@ import com.yu.hu.ppjoke.R;
 import com.yu.hu.ppjoke.databinding.LayoutCommentDialogBinding;
 import com.yu.hu.ppjoke.dialog.LoadingDialog;
 import com.yu.hu.ppjoke.model.Comment;
-import com.yu.hu.ppjoke.publish.CaptureActivity;
+import com.yu.hu.ppjoke.ui.publish.CaptureActivity;
 import com.yu.hu.ppjoke.ui.ViewHelper;
 import com.yu.hu.ppjoke.ui.login.UserManager;
 import com.yu.hu.ppjoke.utils.AppGlobals;

@@ -52,6 +52,10 @@ public class ListPlayerView extends FrameLayout implements IPlayTarget, PlayerCo
     }
 
     public ListPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+        this(context, attrs, defStyleAttr, 0);
+    }
+
+    public ListPlayerView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr);
 
         LayoutInflater.from(context).inflate(R.layout.layout_player_view, this, true);
@@ -154,7 +158,14 @@ public class ListPlayerView extends FrameLayout implements IPlayTarget, PlayerCo
         PlayerView playerView = pageListPlay.playerView;
         PlayerControlView controlView = pageListPlay.controlView;
         SimpleExoPlayer exoPlayer = pageListPlay.exoPlayer;
+        if (playerView == null) {
+            return;
+        }
 
+        //此处我们需要主动调用一次 switchPlayerView，把播放器Exoplayer和展示视频画面的View ExoplayerView相关联
+        //为什么呢？因为在列表页点击视频Item跳转到视频详情页的时候，详情页会复用列表页的播放器Exoplayer，然后和新创建的展示视频画面的View ExoplayerView相关联，达到视频无缝续播的效果
+        //如果 我们再次返回列表页，则需要再次把播放器和ExoplayerView相关联
+        pageListPlay.switchPlayerView(playerView, true);
         ViewParent parent = playerView.getParent();
         if (parent != this) {
 
@@ -187,11 +198,9 @@ public class ListPlayerView extends FrameLayout implements IPlayTarget, PlayerCo
         } else {
             MediaSource mediaSource = PageListPlayManager.createMediaSource(mVideoUrl);
             exoPlayer.prepare(mediaSource);
-            //无限循环播放
             exoPlayer.setRepeatMode(Player.REPEAT_MODE_ONE);
             pageListPlay.playUrl = mVideoUrl;
         }
-
         controlView.show();
         controlView.setVisibilityListener(this);
         exoPlayer.addListener(this);
@@ -247,5 +256,10 @@ public class ListPlayerView extends FrameLayout implements IPlayTarget, PlayerCo
         }
         isPlaying = playbackState == Player.STATE_READY && exoPlayer.getBufferedPosition() != 0 && playWhenReady;
         playBtn.setImageResource(isPlaying ? R.drawable.icon_video_pause : R.drawable.icon_video_play);
+    }
+
+    public View getPlayController() {
+        PageListPlay listPlay = PageListPlayManager.get(mCategory);
+        return listPlay.controlView;
     }
 }

@@ -1,4 +1,4 @@
-package com.yu.hu.ppjoke.detail;
+package com.yu.hu.ppjoke.ui.detail;
 
 import android.content.Context;
 import android.content.Intent;

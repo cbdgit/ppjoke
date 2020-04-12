@@ -1,4 +1,4 @@
-package com.yu.hu.ppjoke.detail;
+package com.yu.hu.ppjoke.ui.detail;
 
 import android.app.Activity;
 import android.content.Context;
@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.yu.hu.ppjoke.databinding.LayoutFeedCommentListItemBinding;
 import com.yu.hu.ppjoke.extention.AbsPagedListAdapter;
 import com.yu.hu.ppjoke.model.Comment;
-import com.yu.hu.ppjoke.publish.PreviewActivity;
+import com.yu.hu.ppjoke.ui.publish.PreviewActivity;
 import com.yu.hu.ppjoke.ui.InteractionPresenter;
 import com.yu.hu.ppjoke.ui.MutableItemKeyedDataSource;
 import com.yu.hu.ppjoke.ui.login.UserManager;
