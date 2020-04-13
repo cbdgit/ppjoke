@@ -5,7 +5,6 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -32,7 +31,7 @@ import java.util.Map;
 @FragmentDestination(pageUrl = "main/tabs/sofa")
 public class SofaFragment extends BaseFragment<FragmentSofaBinding> {
 
-    private ViewPager2 viewPager;
+    protected ViewPager2 viewPager2;
     private TabLayout tabLayout;
     private SofaTab tabConfig;
     private ArrayList<SofaTab.Tabs> tabs;
@@ -43,7 +42,7 @@ public class SofaFragment extends BaseFragment<FragmentSofaBinding> {
     @Override
     protected void onInitView(@Nullable Bundle savedInstanceState) {
         super.onInitView(savedInstanceState);
-        viewPager = mDataBinding.viewPager;
+        viewPager2 = mDataBinding.viewPager;
         tabLayout = mDataBinding.tabLayout;
 
         tabConfig = getTabConfig();
@@ -55,10 +54,10 @@ public class SofaFragment extends BaseFragment<FragmentSofaBinding> {
         }
 
         //禁止预加载
-        viewPager.setOffscreenPageLimit(ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT);
+        viewPager2.setOffscreenPageLimit(ViewPager2.OFFSCREEN_PAGE_LIMIT_DEFAULT);
         //viewPager2默认只有一种类型的Adapter。FragmentStateAdapter
         //并且在页面切换的时候 不会调用子Fragment的setUserVisibleHint ，取而代之的是onPause(),onResume()、
-        viewPager.setAdapter(new FragmentStateAdapter(getChildFragmentManager(), this.getLifecycle()) {
+        viewPager2.setAdapter(new FragmentStateAdapter(getChildFragmentManager(), this.getLifecycle()) {
             @NonNull
             @Override
             public Fragment createFragment(int position) {
@@ -83,13 +82,13 @@ public class SofaFragment extends BaseFragment<FragmentSofaBinding> {
 
         //其中autoRefresh的意思是:如果viewPager2 中child的数量发生了变化，也即我们调用了adapter#notifyItemChanged()前后getItemCount不同。
         //要不要 重新刷野tabLayout的tab标签。视情况而定,像咱们sofaFragment的tab数量一旦固定了是不会变的，传true/false  都问题不大
-        mediator = new TabLayoutMediator(tabLayout, viewPager, false, (tab, position) -> tab.setCustomView(makeTabView(position)));
+        mediator = new TabLayoutMediator(tabLayout, viewPager2, false, (tab, position) -> tab.setCustomView(makeTabView(position)));
         mediator.attach();  //viewpager 与 tabLayout联动
 
-        viewPager.registerOnPageChangeCallback(mPageChangeCallback);
+        viewPager2.registerOnPageChangeCallback(mPageChangeCallback);
 
         //切换到默认选择项,那当然要等待初始化完成之后才有效
-        viewPager.post(() -> viewPager.setCurrentItem(tabConfig.select, false));
+        viewPager2.post(() -> viewPager2.setCurrentItem(tabConfig.select, false));
     }
 
     //页面切换监听以更改tab文本的样式
@@ -119,16 +118,16 @@ public class SofaFragment extends BaseFragment<FragmentSofaBinding> {
     @Override
     public void onDestroy() {
         mediator.detach();
-        viewPager.unregisterOnPageChangeCallback(mPageChangeCallback);
+        viewPager2.unregisterOnPageChangeCallback(mPageChangeCallback);
         super.onDestroy();
 
     }
 
-    private SofaTab getTabConfig() {
+    public SofaTab getTabConfig() {
         return AppConfig.getSofaTabConfig();
     }
 
-    private Fragment getTabFragment(int position) {
+    public Fragment getTabFragment(int position) {
         return HomeFragment.newInstance(tabs.get(position).tag);
     }
 

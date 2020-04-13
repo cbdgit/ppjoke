@@ -13,7 +13,7 @@ public class JsonConvert implements Convert {
 
     //默认的Json转 Java Bean的转换器
     @Override
-    public Object Convert(String response, Type type) {
+    public Object convert(String response, Type type) {
         JSONObject jsonObject = JSON.parseObject(response);
         JSONObject data = jsonObject.getJSONObject("data");
         if (data != null) {

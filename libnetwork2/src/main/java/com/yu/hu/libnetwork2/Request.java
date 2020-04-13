@@ -1,6 +1,8 @@
 package com.yu.hu.libnetwork2;
 
+import android.annotation.SuppressLint;
 import android.text.TextUtils;
+import android.util.Log;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
@@ -32,27 +34,22 @@ import okhttp3.Response;
 @SuppressWarnings({"unchecked", "unused", "WeakerAccess", "UnusedReturnValue"})
 public abstract class Request<T, R extends Request> implements Cloneable {
 
-
-    /* **********缓存类型********** */
-    //仅仅访问本地缓存，即便本地缓存不存在，也不会发起网络请求
-    public static final int CACHE_ONLY = 1;
-    //先访问缓存，同时发起网络请求，成功后缓存到本地
-    public static final int CACHE_FIRST = 2;
-    //仅仅先访问服务器，不存任何存储
-    public static final int NET_ONLY = 3;
-    //先访问网络，成功后缓存到本地
-    public static final int NET_CACHE = 4;
-    /* **********缓存类型********** */
-
     protected String mUrl;
     protected HashMap<String, String> headers = new HashMap<>();
     protected HashMap<String, Object> params = new HashMap<>();
+
+    //仅仅只访问本地缓存，即便本地缓存不存在，也不会发起网络请求
+    public static final int CACHE_ONLY = 1;
+    //先访问缓存，同时发起网络的请求，成功后缓存到本地
+    public static final int CACHE_FIRST = 2;
+    //仅仅只访问服务器，不存任何存储
+    public static final int NET_ONLY = 3;
+    //先访问网络，成功后缓存到本地
+    public static final int NET_CACHE = 4;
     private String cacheKey;
-
-    @CacheStrategy
-    private int mCacheStrategy;
-
     private Type mType;
+    //private Class mClaz;
+    private int mCacheStrategy = NET_ONLY;
 
     @IntDef({CACHE_ONLY, CACHE_FIRST, NET_CACHE, NET_ONLY})
     @Retention(RetentionPolicy.SOURCE)
@@ -60,14 +57,9 @@ public abstract class Request<T, R extends Request> implements Cloneable {
 
     }
 
-    public R cacheStrategy(@CacheStrategy int cacheStrategy) {
-        mCacheStrategy = cacheStrategy;
-        return (R) this;
-    }
-
-    public Request(String mUrl) {
+    public Request(String url) {
         //user/list
-        this.mUrl = mUrl;
+        mUrl = url;
     }
 
     public R addHeader(String key, String value) {
@@ -75,10 +67,11 @@ public abstract class Request<T, R extends Request> implements Cloneable {
         return (R) this;
     }
 
-    /**
-     * @param value 只能是基本数据类型
-     */
-    public R addParams(String key, Object value) {
+    public R addParams(String key, Object value){
+        return addParam(key, value);
+    }
+
+    public R addParam(String key, Object value) {
         if (value == null) {
             return (R) this;
         }
@@ -89,13 +82,20 @@ public abstract class Request<T, R extends Request> implements Cloneable {
             } else {
                 Field field = value.getClass().getField("TYPE");
                 Class claz = (Class) field.get(null);
-                if (claz != null && claz.isPrimitive()) {
+                if (claz.isPrimitive()) {
                     params.put(key, value);
                 }
             }
-        } catch (Exception e) {
-            LogUtil.warn(e);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
+        return (R) this;
+    }
+
+    public R cacheStrategy(@CacheStrategy int cacheStrategy) {
+        mCacheStrategy = cacheStrategy;
         return (R) this;
     }
 
@@ -104,13 +104,60 @@ public abstract class Request<T, R extends Request> implements Cloneable {
         return (R) this;
     }
 
-    /**
-     * 异步请求
-     *
-     * @param callback 回调接口
-     */
-    public void execute(final JsonCallback<T> callback) {
+    public R responseType(Type type) {
+        mType = type;
+        return (R) this;
+    }
 
+    public R responseType(Class claz) {
+        mType = claz;
+        return (R) this;
+    }
+
+    private Call getCall() {
+        okhttp3.Request.Builder builder = new okhttp3.Request.Builder();
+        addHeaders(builder);
+        okhttp3.Request request = generateRequest(builder);
+        Call call = ApiService.okHttpClient.newCall(request);
+        return call;
+    }
+
+    protected abstract okhttp3.Request generateRequest(okhttp3.Request.Builder builder);
+
+    private void addHeaders(okhttp3.Request.Builder builder) {
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            builder.addHeader(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public ApiResponse<T> execute() {
+        if (mType == null) {
+            throw new RuntimeException("同步方法,response 返回值 类型必须设置");
+        }
+
+        if (mCacheStrategy == CACHE_ONLY) {
+            return readCache();
+        }
+
+        if (mCacheStrategy != CACHE_ONLY) {
+            ApiResponse<T> result = null;
+            try {
+                Response response = getCall().execute();
+                result = parseResponse(response, null);
+            } catch (IOException e) {
+                e.printStackTrace();
+                if (result == null) {
+                    result = new ApiResponse<>();
+                    result.message = e.getMessage();
+                }
+            }
+            return result;
+        }
+        return null;
+    }
+
+    @SuppressLint("RestrictedApi")
+    public void execute(final JsonCallback callback) {
         if (mCacheStrategy != NET_ONLY) {
             ArchTaskExecutor.getIOThreadExecutor().execute(new Runnable() {
                 @Override
@@ -122,58 +169,28 @@ public abstract class Request<T, R extends Request> implements Cloneable {
                 }
             });
         }
-
         if (mCacheStrategy != CACHE_ONLY) {
             getCall().enqueue(new Callback() {
                 @Override
                 public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    ApiResponse<T> response = new ApiResponse<>();
-                    response.message = e.getMessage();
-                    callback.onError(response);
+                    ApiResponse<T> result = new ApiResponse<>();
+                    result.message = e.getMessage();
+                    callback.onError(result);
                 }
 
                 @Override
-                public void onResponse(@NotNull Call call, @NotNull Response response) {
-                    ApiResponse<T> apiResponse = parseResponse(response, callback);
-                    if (!apiResponse.success) {
-                        callback.onError(apiResponse);
+                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                    ApiResponse<T> result = parseResponse(response, callback);
+                    if (!result.success) {
+                        callback.onError(result);
                     } else {
-                        callback.onSuccess(apiResponse);
+                        callback.onSuccess(result);
                     }
                 }
             });
         }
     }
 
-    /**
-     * 同步请求
-     */
-    public ApiResponse<T> execute() {
-
-        if (mType == null) {
-            throw new RuntimeException("同步方法,response 返回值 类型必须设置");
-        }
-
-        if (mCacheStrategy == CACHE_ONLY) {
-            return readCache();
-        }
-
-        ApiResponse<T> result;
-        try {
-            Response response = getCall().execute();
-            result = parseResponse(response, null);
-        } catch (Exception e) {
-            LogUtil.printStackTrance(e);
-            result = new ApiResponse<>();
-            result.message = e.getMessage();
-        }
-        return result;
-
-    }
-
-    /**
-     * 读取缓存
-     */
     private ApiResponse<T> readCache() {
         String key = TextUtils.isEmpty(cacheKey) ? generateCacheKey() : cacheKey;
         Object cache = CacheManager.getCache(key);
@@ -185,7 +202,6 @@ public abstract class Request<T, R extends Request> implements Cloneable {
         return result;
     }
 
-    @SuppressWarnings("ConstantConditions")
     private ApiResponse<T> parseResponse(Response response, JsonCallback<T> callback) {
         String message = null;
         int status = response.code();
@@ -196,20 +212,22 @@ public abstract class Request<T, R extends Request> implements Cloneable {
             String content = response.body().string();
             if (success) {
                 if (callback != null) {
-                    //这里callback是一个接口  所以这里可以获取到泛型的具体类型
                     ParameterizedType type = (ParameterizedType) callback.getClass().getGenericSuperclass();
                     Type argument = type.getActualTypeArguments()[0];
-                    result.body = (T) convert.Convert(content, argument);
+                    result.body = (T) convert.convert(content, argument);
                 } else if (mType != null) {
-                    result.body = (T) convert.Convert(content, mType);
-                } else {
-                    LogUtil.e("parseResponse： 无法解析");
+                    result.body = (T) convert.convert(content, mType);
+                }
+//                } else if (mClaz != null) {
+//                    result.body = (T) convert.convert(content, mClaz);
+//                }
+                else {
+                    Log.e("request", "parseResponse: 无法解析 ");
                 }
             } else {
                 message = content;
             }
         } catch (Exception e) {
-            LogUtil.warn(e);
             message = e.getMessage();
             success = false;
             status = 0;
@@ -219,12 +237,9 @@ public abstract class Request<T, R extends Request> implements Cloneable {
         result.status = status;
         result.message = message;
 
-        if (mCacheStrategy != NET_ONLY && result.success
-                && result.body instanceof Serializable) {
+        if (mCacheStrategy != NET_ONLY && result.success && result.body != null && result.body instanceof Serializable) {
             saveCache(result.body);
-
         }
-
         return result;
     }
 
@@ -236,26 +251,6 @@ public abstract class Request<T, R extends Request> implements Cloneable {
     private String generateCacheKey() {
         cacheKey = UrlCreator.createUrlFromParams(mUrl, params);
         return cacheKey;
-    }
-
-    public R responseType(Type type) {
-        mType = type;
-        return (R) this;
-    }
-
-    private Call getCall() {
-        okhttp3.Request.Builder builder = new okhttp3.Request.Builder();
-        addHeaders(builder);
-        okhttp3.Request request = generateRequest(builder);
-        return ApiService.okHttpClient.newCall(request);
-    }
-
-    protected abstract okhttp3.Request generateRequest(okhttp3.Request.Builder builder);
-
-    private void addHeaders(okhttp3.Request.Builder builder) {
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            builder.addHeader(entry.getKey(), entry.getValue());
-        }
     }
 
     @NonNull

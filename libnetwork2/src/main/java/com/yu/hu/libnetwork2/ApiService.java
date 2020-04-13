@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.TimeUnit;
 
@@ -25,13 +26,11 @@ import okhttp3.logging.HttpLoggingInterceptor;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class ApiService {
 
-    public static final OkHttpClient okHttpClient;
+    protected static final OkHttpClient okHttpClient;
     protected static String sBaseUrl;
     protected static Convert sConvert;
 
     static {
-
-        //拦截器
         HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
         interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
 
@@ -43,17 +42,14 @@ public class ApiService {
                 .build();
 
         //http 证书问题
-        //另外   AndroidManifest.xml中设置usesCleartextTraffic允许明文请求
         TrustManager[] trustManagers = new TrustManager[]{new X509TrustManager() {
-            @SuppressLint("TrustAllX509TrustManager")
             @Override
-            public void checkClientTrusted(X509Certificate[] chain, String authType) {
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 
             }
 
-            @SuppressLint("TrustAllX509TrustManager")
             @Override
-            public void checkServerTrusted(X509Certificate[] chain, String authType) {
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
 
             }
 
@@ -62,28 +58,24 @@ public class ApiService {
                 return new X509Certificate[0];
             }
         }};
-
         try {
             SSLContext ssl = SSLContext.getInstance("SSL");
             ssl.init(null, trustManagers, new SecureRandom());
 
             HttpsURLConnection.setDefaultSSLSocketFactory(ssl.getSocketFactory());
             HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-                @SuppressLint("BadHostnameVerifier")
                 @Override
                 public boolean verify(String hostname, SSLSession session) {
                     return true;
                 }
             });
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (KeyManagementException e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * @param baseUrl baseUrl
-     * @param convert 转换器  默认为{@link JsonConvert}
-     */
     public static void init(String baseUrl, Convert convert) {
         sBaseUrl = baseUrl;
         if (convert == null) {

@@ -25,6 +25,7 @@ import com.bumptech.glide.request.transition.Transition;
 import com.yu.hu.ppjoke.utils.PixUtils;
 
 import jp.wasabeef.glide.transformations.BlurTransformation;
+import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
 
 /**
  * @author Hy
@@ -123,6 +124,21 @@ public class PPImageView extends AppCompatImageView {
                         imageView.setBackground(resource);
                     }
                 });
+    }
+
+    @BindingAdapter(value = {"image_url", "isCircle", "radius"}, requireAll = false)
+    public static void setImageUrl(PPImageView view, String imageUrl, boolean isCircle, int radius) {
+        RequestBuilder<Drawable> builder = Glide.with(view).load(imageUrl);
+        if (isCircle) {
+            builder.transform(new CircleCrop());
+        } else if (radius > 0) {
+            builder.transform(new RoundedCornersTransformation(PixUtils.dp2px(radius), 0));
+        }
+        ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+        if (layoutParams != null && layoutParams.width > 0 && layoutParams.height > 0) {
+            builder.override(layoutParams.width, layoutParams.height);
+        }
+        builder.into(view);
     }
 
     public void setImageUrl(String imageUrl) {

@@ -21,6 +21,7 @@ import com.yu.hu.libnetwork2.JsonCallback;
 import com.yu.hu.ppjoke.extention.LiveDataBus;
 import com.yu.hu.ppjoke.model.Comment;
 import com.yu.hu.ppjoke.model.Feed;
+import com.yu.hu.ppjoke.model.TagList;
 import com.yu.hu.ppjoke.model.User;
 import com.yu.hu.ppjoke.ui.login.UserManager;
 import com.yu.hu.ppjoke.ui.share.ShareDialog;
@@ -328,5 +329,38 @@ public class InteractionPresenter {
 
     private static void showToast(String message) {
         ArchTaskExecutor.getMainThreadExecutor().execute(() -> Toast.makeText(AppGlobals.getApplication(), message, Toast.LENGTH_SHORT).show());
+    }
+
+    //关注/取消关注一个帖子标签
+    public static void toggleTagLike(LifecycleOwner owner, TagList tagList) {
+        if (!isLogin(owner, new Observer<User>() {
+            @Override
+            public void onChanged(User user) {
+                toggleTagLikeInternal(tagList);
+            }
+        })) ;
+        else {
+            toggleTagLikeInternal(tagList);
+        }
+    }
+
+    private static void toggleTagLikeInternal(TagList tagList) {
+        ApiService.get("/tag/toggleTagFollow")
+                .addParam("tagId", tagList.tagId)
+                .addParam("userId", UserManager.get().getUserId())
+                .execute(new JsonCallback<JSONObject>() {
+                    @Override
+                    public void onSuccess(ApiResponse<JSONObject> response) {
+                        if (response.body != null) {
+                            Boolean follow = response.body.getBoolean("hasFollow");
+                            tagList.setHasFollow(follow);
+                        }
+                    }
+
+                    @Override
+                    public void onError(ApiResponse<JSONObject> response) {
+                        showToast(response.message);
+                    }
+                });
     }
 }
